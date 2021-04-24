@@ -13,3 +13,5 @@ exports.getReqUrlObj = function(req) {
     // console.log(urlObj)
     return urlObj
 }
+
+

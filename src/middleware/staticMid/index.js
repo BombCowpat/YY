@@ -5,7 +5,7 @@ const { getReqUrlObj } = require('../../utils/common')
 
 /**
  * 静态资源服务
- * @param {*} extname 
+ * @param {*} dir 相对路径 
  * @returns 
  */
 exports.static = function(req, res, dir) {
@@ -17,7 +17,7 @@ exports.static = function(req, res, dir) {
     let extname = path.extname(filePath)
     
     /** 读取文件并响应 */
-    fs.readFile(dir + filePath, (err, data) => {
+    fs.readFile(path.resolve(__dirname, dir) + filePath, (err, data) => {
       // 如果能读取到文件则返回相应文件，反之路由下放 true:下放 false:响应处理完成
       if(!err) {
         res.writeHead(200, {

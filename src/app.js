@@ -1,11 +1,14 @@
 const http = require('http')
-const { static } = require('./middleware/staticMid')
 const ejs = require('ejs')
+const path = require('path')
+const { static } = require('./middleware/staticMid')
+const { getReqUrlObj } = require('./utils/common')
 
 const app = http.createServer(async(req,res) => {
-  let next = await static(req, res, './static')
+  let next = await static(req, res, '../../../static')
   if(next) {
-    let pathname = req.url
+    let urlObj = getReqUrlObj(req)
+    let pathname = urlObj.pathname
     if(pathname === '/news') { 
       let msg = 'name:yy age:18'
       let list = [
@@ -26,8 +29,9 @@ const app = http.createServer(async(req,res) => {
           b:255
         }
       ]
-      ejs.renderFile('./views/login.ejs', {msg,list}, (err,data) => {
+      ejs.renderFile(path.resolve(__dirname,'./views/news.ejs'), {msg,list}, (err, data) => {
         if(err) {
+          console.log(err)
           res.writeHead(500, {
             'Content-Type': 'text/plain'
           })
@@ -41,7 +45,30 @@ const app = http.createServer(async(req,res) => {
 
       })
     } else if (pathname === '/login'){
-      
+      ejs.renderFile(path.resolve(__dirname, './views/login.ejs'), {}, (err, data)=> {
+        if(err) {
+          res.writeHead(500, {
+            'Content-Type': 'text/plain'
+          })
+          res.end(JSON.stringify(err))
+        }else {
+          res.writeHead(200, {
+            'Content-Type': 'text/html'
+          })
+          res.end(data) 
+        }
+      })
+    } else if(pathname === '/dologin') {
+      let data = ''
+      req.on('data', (chunk) => {
+        data += chunk
+      })
+      req.on('end', () => {
+        res.writeHead(200, {
+          'Content-Type': 'text/html'
+        })
+        res.end(data) 
+      })
     }
     else {
       res.writeHead(404, {
