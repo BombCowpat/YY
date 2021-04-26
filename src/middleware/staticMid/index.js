@@ -8,7 +8,7 @@ const { getReqUrlObj } = require('../../utils/common')
  * @param {*} dir 相对路径 
  * @returns 
  */
-exports.static = function(req, res, dir) {
+exports.staticMid = function(req, res, dir) {
   return new Promise(resolve => {
     let urlObj = getReqUrlObj(req)
     // 获取文件路径
