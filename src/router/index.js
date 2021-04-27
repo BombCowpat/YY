@@ -1,7 +1,7 @@
 const ejs = require('ejs')
 const path = require('path')
 
-exports.router = {
+module.exports = {
   '/news': function (req, res) {
     let msg = 'name:yy age:18'
     let list = [
@@ -53,24 +53,9 @@ exports.router = {
     })
   },
   '/dologin': function (req, res) {
-    let data = ''
-    req.on('data', chunk => {
-      data += chunk
+    res.writeHead(200, {
+      'Content-Type': 'text/html;charset=utf-8',
     })
-    req.on('end', () => {
-      res.writeHead(200, {
-        'Content-Type': 'text/html',
-      })
-      res.end(data)
-    })
-  },
-  notFound: function (req, res) {
-    res.writeHead(404, {
-      'Content-Type': 'text/plain;charset=utf-8',
-    })
-    res.end('404 Not Found!')
+    res.end(JSON.stringify(req.body))
   },
 }
-
-
-
