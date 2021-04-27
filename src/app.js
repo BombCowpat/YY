@@ -19,31 +19,34 @@ module.exports = class App {
       req.on('data', chunk => {
         body += chunk
       })
-      req.on('end', async () => {
+      req.on('end', () => {
+        req.next = true
         req.urlObj = getReqUrlObj(req)
-        console.log(req.urlObj)
         req.body = querystring.parse(body)
         let pathname = req.urlObj.pathname
-        // 静态资源服务处理完成标志
-        let next = false
+        // 静态资源服务
         if (this._static) {
-          next = await staticMid(req, res, this._staticPath)
-        } else {
-          next = true
+          staticMid(req, res, this._staticPath)
         }
         // 调用路由处理函数
-        if (req.method === 'GET' && next) {
-          if (this._get[pathname]) {
-            this._get[req.urlObj.pathname](req, res)
-          } else {
-            notFound(res)
+        if (req.next) {
+          switch (req.method) {
+            case 'GET':
+              if (this._get[pathname]) {
+                req.next = false
+                this._get[req.urlObj.pathname](req, res)
+              }
+              break
+            case 'POST':
+              if (this._post[pathname]) {
+                req.next = false
+                this._post[pathname](req, res)
+              }
+              break
           }
-        } else if (req.method === 'POST' && next) {
-          if (this._post[pathname]) {
-            this._post[pathname](req, res)
-          } else {
-            notFound(res)
-          }
+        }
+        if (req.next) {
+          notFound(res)
         }
       })
     })
@@ -71,4 +74,3 @@ function notFound(res) {
   })
   res.end('404 Not Found!')
 }
-

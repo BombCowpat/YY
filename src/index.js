@@ -1,6 +1,4 @@
 
-const path = require('path')
-const ejs = require('ejs')
 const App = require('./app')
 const router = require('./router')
 
