@@ -1,43 +1,76 @@
 const http = require('http')
-const { static } = require('./middleware/staticMid')
+const path = require('path')
+const querystring = require('querystring')
+const { staticMid } = require('./middleware/staticMid')
 const { getReqUrlObj } = require('./utils/common')
 
-const { router } = require('./router')
-
-const app = http.createServer(async(req,res) => {
-  let next = await static(req, res, '../../../static')
-  if(next) {
-    let urlObj = getReqUrlObj(req)
-    let pathname = urlObj.pathname
-    if(typeof router[pathname] === 'function') {
-      router[pathname](req, res)
-    }else {
-      router.notFound(req, res)
-    }
+module.exports = class App {
+  constructor() {
+    // 是否开启静态资源服务
+    this._static = false
+    // get 路由
+    this._get = {}
+    // post 路由
+    this._post = {}
+    // 创建服务
+    this._server = http.createServer((req, res) => {
+      // 获取请求 url 以及 请求体
+      let body = ''
+      req.on('data', chunk => {
+        body += chunk
+      })
+      req.on('end', () => {
+        req.next = true
+        req.urlObj = getReqUrlObj(req)
+        req.body = querystring.parse(body)
+        let pathname = req.urlObj.pathname
+        // 静态资源服务
+        if (this._static) {
+          staticMid(req, res, this._staticPath)
+        }
+        // 调用路由处理函数
+        if (req.next) {
+          switch (req.method) {
+            case 'GET':
+              if (this._get[pathname]) {
+                req.next = false
+                this._get[req.urlObj.pathname](req, res)
+              }
+              break
+            case 'POST':
+              if (this._post[pathname]) {
+                req.next = false
+                this._post[pathname](req, res)
+              }
+              break
+          }
+        }
+        if (req.next) {
+          notFound(res)
+        }
+      })
+    })
   }
-})
 
+  get(path, cb) {
+    this._get[path] = cb
+  }
+  post(path, cb) {
+    this._post[path] = cb
+  }
+  listen(port, cb) {
+    this._server.listen(port, cb)
+  }
 
-app.listen(8900,()=> {
-  console.log('http://localhost:8900')
-})
-
-/**
- * 获取后缀名对应的mine类型
- * @param {*} extname 
- * @returns 
- */
-
-function getMine(extname) {
-  return mine[extname]
+  openSSS(staticPath) {
+    this._static = true
+    this._staticPath = path.resolve(__dirname, staticPath)
+  }
 }
 
-
-
-
-
-
-
-
-
-
+function notFound(res) {
+  res.writeHead(404, {
+    'Content-Type': 'text/plain;',
+  })
+  res.end('404 Not Found!')
+}
