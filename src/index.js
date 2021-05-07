@@ -11,10 +11,10 @@ app.openSSS('./views')
 app.get('/login', router['/login'])
 app.get('/news', router['/news'])
 app.post('/dologin', router['/dologin'])
-app.get('/todos/list', router['/todos/list'])
-app.post('/todos/add', router['/todos/add'])
-app.post('/todos/update', router['/todos/update'])
-app.post('/todos/delete', router['/todos/delete'])
+app.get('/todos/list', router.todos['/todos/list'])
+app.post('/todos/add', router.todos['/todos/add'])
+app.post('/todos/update', router.todos['/todos/update'])
+app.post('/todos/delete', router.todos['/todos/delete'])
 
 
 

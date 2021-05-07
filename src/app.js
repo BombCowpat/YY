@@ -22,7 +22,7 @@ module.exports = class App {
       req.on('end', () => {
         req.next = true
         req.urlObj = getReqUrlObj(req)
-        req.body = querystring.parse(body)
+        this.parseBody(req, body)
         let pathname = req.urlObj.pathname
         // 静态资源服务
         if (this._static) {
@@ -60,6 +60,25 @@ module.exports = class App {
   }
   listen(port, cb) {
     this._server.listen(port, cb)
+  }
+
+  parseBody(req, body) {
+    let contentType = req.headers['content-type']
+    switch(true) {
+      // 以表单形式提交，主要是上传文件
+      case /^multipart\/form-data/.test(contentType):
+        req.body = querystring.parse(body)
+        break
+      // 以键值对的数据格式提交表单，当action为post时，浏览器将form数据封装到http body中，然后发送server。这个格式不能提交文件
+      case /^application\/x-www-form-urlencoded/.test(contentType):
+        req.body = querystring.parse(body)
+        break
+      // json格式提交数据
+      case /^application\/json/.test(contentType):
+        req.body = JSON.parse(body)
+        break
+        
+    }
   }
 
   openSSS(staticPath) {
